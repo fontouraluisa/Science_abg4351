@@ -18,8 +18,8 @@ library(viridis)
 ACTIVE.1.sub.V2 <- readRDS(here("_data","Datasets","GLOBAL","ACTIVE.1.sub.V2_May.Rds"))
 ACTIVE.1.sub.V2.std <- readRDS(here("_data","Datasets","GLOBAL","ACTIVE.1.sub.V2.std_May.Rds"))
 
-MOD_BIOM_1_run_ACTIVE.1 <- readRDS(here("Models output","GLOBAL","ACTIVE 1","Biomass","MOD_BIOM_1_run_ACTIVE.1_V2_May.Rds"))
-MOD_S_1_run_ACTIVE.1 <- readRDS(here("Models output","GLOBAL","ACTIVE 1","Richness","MOD_S_1_run_ACTIVE.1_V2_May.Rds"))
+MOD_BIOM_1_run_ACTIVE.1 <- readRDS(here("Models output","MOD_BIOM_1_run_ACTIVE.1_V2_May.Rds"))
+MOD_S_1_run_ACTIVE.1 <- readRDS(here("Models output","MOD_S_1_run_ACTIVE.1_V2_May.Rds"))
 
 #cryptic 5
 MOD_BIOM_1_run_CRYPTIC <- readRDS(here("Models output","ACTIVE_1","CRYPTIC","Biomass","MOD_BIOM_1_run_CRYPTIC_V2_May.Rds"))
@@ -250,32 +250,27 @@ BAYE_coef_tot_rich_biom_FULL <- ggarrange(Biomass.FE,Richness.FE,
 #Netflow and indegree of neighbors #back transform netflow, species richness and indegree of neighbors
 conditional_effects(MOD_S_1_run_ACTIVE.1, "log_Indegree_Neigh")
 ##back transform richness
-FUNSTEPH = function(x){(x - mean(x,na.rm=T)) / (1*sd(x,na.rm=T))}
-# z = (x - mean)/ (1 * sd (x))
 meanRich<-mean(ACTIVE.1.sub.V2$Richness,na.rm=T)
 sdRich<- 1*sd(ACTIVE.1.sub.V2$Richness,na.rm=T)
-datanorm<- (FUNSTEPH(ACTIVE.1.sub.V2$Richness))
-#now back transform (test)
 FUNINVLU = function(x){(x * sdRich) + meanRich}
-head(FUNINVLU(datanorm)) #ok
-head(ACTIVE.1.sub.V2$Richness)
-ACTIVE.1.sub.V2.std$Richness_UN <- (FUNINVLU(ACTIVE.1.sub.V2.std$Richness))#ok
-
+##back transform log indegree
+meanINN<-mean(ACTIVE.1.sub.V2$log_Indegree_Neigh,na.rm=T)
+sdINN<- 1*sd(ACTIVE.1.sub.V2$log_Indegree_Neigh,na.rm=T)
+FUNINVIN = function(x){(x * sdINN) + meanINN}
 #marginal plot (richness vs extrinsic indegree )
 margCry<-plot(conditional_effects(MOD_S_1_run_ACTIVE.1, "log_Indegree_Neigh"))
 marRich_Cor<-margCry$log_Indegree_Neigh
 try2<-margCry$log_Indegree_Neigh$plot_env$plots$log_Indegree_Neigh$plot_env$x$log_Indegree_Neigh
-
 rm(margPlot)
 margPlot<-try2[,c("log_Indegree_Neigh","estimate__","lower__","upper__")]
 margPlot$rwRich<-FUNINVLU(margPlot$estimate__) #unscale richness
 margPlot$rwRichlow<-FUNINVLU(margPlot$lower__)
 margPlot$rwRichupp<-FUNINVLU(margPlot$upper__)
-datapointInRich <- ACTIVE.1.sub.V2.std
-datapointInRich$unscaledRichness <- FUNINVLU(ACTIVE.1.sub.V2.std$Richness)
+margPlot$log_Indegree_NeighBT <- FUNINVIN(margPlot$log_Indegree_Neigh)
+###
 
-PartC<-ggplot(margPlot, aes(y = rwRich, x = log_Indegree_Neigh)) +
-  geom_point(size=0.01) + geom_point(data=datapointInRich, mapping=aes(y=unscaledRichness,x=log_Indegree_Neigh),shape=21 ,size=2,alpha=0.35, color="gray",fill="gray25") +
+PartC<-ggplot(margPlot, aes(y = rwRich, x = log_Indegree_NeighBT)) +
+  geom_point(size=0.01) + geom_point(data=ACTIVE.1.sub.V2, mapping=aes(y=Richness,x=log_Indegree_Neigh),shape=21 ,size=2,alpha=0.35, color="gray",fill="gray25") +
   geom_ribbon( aes(ymin = rwRichlow, ymax = rwRichupp), alpha = .3) +
   geom_line( aes(y = rwRich), size = 1.5, color="black") + theme_classic() +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 6))
@@ -283,45 +278,25 @@ PartC
 
 
 ##Netflow
-conditional_effects(MOD_BIOM_1_run_ACTIVE.1, "Netflow")
-
 ##back transform Netflow
 meanINfN<-mean(ACTIVE.1.sub.V2$Netflow,na.rm=T)
 sdINfN<- 1*sd(ACTIVE.1.sub.V2$Netflow,na.rm=T)
-datanormINfN<- (FUNSTEPH(ACTIVE.1.sub.V2$Netflow))
-head(datanormINfN)
-head(FUNSTEPH(ACTIVE.1.sub.V2$Netflow))
-#now back transform
 FUNINVLUIF = function(x){(x * sdINfN) + meanINfN}
-head(FUNINVLUIF(datanormINfN)) #ok
-head(ACTIVE.1.sub.V2$Netflow) #ok
-
-#unscale biomass (keep it log)
-FUNSTEPH = function(x){(x - mean(x,na.rm=T)) / (1*sd(x,na.rm=T))}
-# z = (x - mean)/ (1 * sd (x))
-meanBio<-mean(ACTIVE.1.sub.V2$biomassare,na.rm=T)
-sdBio<- 1*sd(ACTIVE.1.sub.V2$biomassare,na.rm=T)
-rm(datanorm)
-datanorm<- (FUNSTEPH(ACTIVE.1.sub.V2$biomassare))
-#now back transform (test)
-FUNINVLU = function(x){(x * sdBio) + meanBio}
-head(FUNINVLU(datanorm)) #ok
-head(ACTIVE.1.sub.V2$biomassare)
-
 #marginal plot (log biomass vs Netflow - back transform Netflow )
 rm(margCry)
+rm(try2)
 margCry<-plot(conditional_effects(MOD_BIOM_1_run_ACTIVE.1, "Netflow"))
 try2<-margCry$Netflow$plot_env$plots$Netflow$plot_env$x$Netflow
 rm(margPlot)
 margPlot<-try2[,c("Netflow","estimate__","lower__","upper__")]
-margPlot$unscaled_Netflow <- FUNINVLUIF(margPlot$Netflow)
-margPlot$unscaled_logbiomass <- log(FUNINVLU(expm1(margPlot$estimate__)))
+margPlot$NetflowBT <- FUNINVLUIF(margPlot$Netflow)
+summary(margPlot)
 
 rm(PartD)
-PartD<-ggplot(margPlot, aes(y = estimate__, x = unscaled_Netflow)) +
+PartD<-ggplot(margPlot, aes(y = estimate__, x = NetflowBT)) +
   geom_point(size=0.01) +  geom_point(data=ACTIVE.1.sub.V2, mapping=aes(y=log_biomassarea, x=Netflow), shape=21 ,size=2,alpha=0.35, color="gray", fill="gray25") +
-  geom_ribbon( aes(ymin = lower__, ymax =upper__), alpha = .3) +
-  geom_line( aes(y = estimate__), size = 1.3, color="black") + theme_classic() +
+  geom_ribbon( aes(ymin = lower__, ymax = upper__), alpha = .3) +
+  geom_line( aes(y = lestimate__), size = 1.3, color="black") + theme_classic() +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 5))
 PartD
 
