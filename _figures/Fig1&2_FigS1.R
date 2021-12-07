@@ -241,7 +241,7 @@ Richness.FE <- ggplot(four_FE_Richness %>% filter(PARAM != "Intercept"), aes(col
   ggtitle("Richness") 
 Richness.FE  # The trick to these is position_dodge()
 
-BAYE_coef_tot_rich_biom_FULL <- ggarrange(Biomass.FE,Richness.FE,
+BAYE_coef_tot_rich_biom_FULL <- ggarrange(Richness.FE,Biomass.FE,
                                      ncol=2,nrow=1,labels = c("A","B"),align="hv",common.legend = T,legend="bottom")
 
 
@@ -296,7 +296,7 @@ rm(PartD)
 PartD<-ggplot(margPlot, aes(y = estimate__, x = NetflowBT)) +
   geom_point(size=0.01) +  geom_point(data=ACTIVE.1.sub.V2, mapping=aes(y=log_biomassarea, x=Netflow), shape=21 ,size=2,alpha=0.35, color="gray", fill="gray25") +
   geom_ribbon( aes(ymin = lower__, ymax = upper__), alpha = .3) +
-  geom_line( aes(y = lestimate__), size = 1.3, color="black") + theme_classic() +
+  geom_line( aes(y = estimate__), size = 1.3, color="black") + theme_classic() +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 5))
 PartD
 
@@ -306,7 +306,6 @@ Netflow_Indegree <- ggarrange(PartD,PartC,
 
 
 #Fig. S1 ----
-# TRANSIENT TOT
 rm(a)
 a <- mcmc_intervals(MOD_BIOM_1_run_ACTIVE.1)
 # no classification
@@ -460,7 +459,7 @@ pred_dat[['log_biomassarea']] <- y_hat$Estimate
 pred_dat[['log_biomassarea_2.5']] <- y_hat$Q2.5
 pred_dat[['log_biomassarea_97.5']] <- y_hat$Q97.5
 
-#unscale Netflow
+#back tran Netflow
 rm(meanINfN)
 meanINfN<-mean(ACTIVE.1.sub.V2$Netflow,na.rm=T)
 rm(sdINfN)
@@ -468,7 +467,7 @@ sdINfN<- 1*sd(ACTIVE.1.sub.V2$Netflow,na.rm=T)
 FUNINVLUIF = function(x){(x * sdINfN) + meanINfN}
 pred_dat$Netflowun<- round(FUNINVLUIF(pred_dat$Netflow))
 head(pred_dat)
-#unscale Graviy
+#back tran Gravity
 rm(meanINfN)
 meanINfN<-mean(ACTIVE.1.sub.V2$log_grav_total,na.rm=T)
 rm(sdINfN)

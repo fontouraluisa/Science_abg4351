@@ -26,7 +26,7 @@ library(ggpubr)
 
 # load data
 rm(all.data)
-all.data<-read.csv(here("_data","Connectivity_Biomass_SEMGLMMDATA_March2021.csv"),h=T, stringsAsFactors = F,dec=".")
+all.data<-read.csv(here("_data","Connectivity_Biomass_data.csv"),h=T, stringsAsFactors = F,dec=".")
 
 # clean first column
 all.data$X <- NULL
@@ -42,7 +42,6 @@ apply(all.data,2,class)
 
 # log all the data
 all.data$log_grav_total <- log(all.data$grav_total+1)
-all.data$log_grav_neiBR <- log(all.data$grav_nei+1)
 all.data$log_biomassarea <-log(all.data$biomassare+1)
 
 # change to factor
@@ -66,24 +65,20 @@ all.data <- all.data %>% filter(!is.na(Netflow))
 # log transformed skewed data
 all.data$log_btwdegree <- log(all.data$btwdegree+1)
 all.data$log_SelfR <- log(all.data$SelfR+1)
-#all.data$log_CorridorIn <- log(all.data$CorridorIn+1)
-#all.data$log_InflowMPA <- log(all.data$InflowMPA+1)
 all.data$log_InflowNei <- log(all.data$InflowNei+1)
 all.data$log_Inflow <- log(all.data$Inflow+1)
 all.data$log_annual_prod <- log(all.data$prod.annual+1)
 all.data$log_Indegree <- log(all.data$Indegree+1)
-#all.data$log_Indegree_MPA <- log(all.data$IndegreeMP+1)
 all.data$log_Indegree_Neigh <- log(all.data$IndegreeNe+1)
 all.data$log_Outdegree <- log(all.data$Outdegree+1)
 all.data$log_Outflow <- log(all.data$OutFlow+1)
 
 # save all.data file
-#saveRDS(all.data,here::here("_data","Connectivity_Biomass_SEMGLMMDATA_March2021.rds"))
+#saveRDS(all.data,here::here("_data","Connectivity_Biomass_data.rds"))
 
 # CORRELATION BETWEEN CONNECTIVITY VARIABLES ----
 connectivity <- all.data[,c("SelfR","Inflow","Indegree",       
                             "IndegreeNe","InflowNei","OutFlow","Outdegree","btwdegree","Netflow")] 
-?corrgram
 corr.connectivity <- corrgram(connectivity,order=TRUE, lower.panel=panel.shade,
                               upper.panel=panel.cor, text.panel=panel.txt)
 
@@ -109,10 +104,10 @@ summary(TRANSIENT)
 
 ## standardize x variables
 rm(TRANSIENT.std)
-TRANSIENT.std<-data.frame(apply(X = TRANSIENT[,c("Richness","temp","Age_of_pro","prod.annual",
-                                                 "Netflow","log_grav_total","log_grav_neiBR",
-                                                 "log_btwdegree","log_SelfR","log_CorridorIn","log_Inflow",  
-                                                 "log_InflowMPA","log_InflowNei","log_Indegree","log_Indegree_MPA","log_Indegree_Neigh","log_Outdegree","log_Outflow")], MARGIN = 2,FUN = function(x){(x - mean(x,na.rm=T)) / (1*sd(x,na.rm=T))}))
+TRANSIENT.std<-data.frame(apply(X = TRANSIENT[,c("Richness","temp","prod.annual",
+                                                 "Netflow","log_grav_total",
+                                                 "log_btwdegree","log_SelfR","log_Inflow",  
+                                                 "log_InflowNei","log_Indegree","log_Indegree_Neigh","log_Outdegree","log_Outflow")], MARGIN = 2,FUN = function(x){(x - mean(x,na.rm=T)) / (1*sd(x,na.rm=T))}))
 # add management and region
 TRANSIENT.std <- cbind(TRANSIENT$region,TRANSIENT.std)
 TRANSIENT.std <- cbind(TRANSIENT$Class,TRANSIENT.std)
@@ -137,10 +132,10 @@ summary(PARENTAL)
 
 ## standardize x variables
 rm(PARENTAL.std)
-PARENTAL.std<-data.frame(apply(X = PARENTAL[,c("Richness","temp","Age_of_pro","prod.annual",
-                                               "Netflow","log_grav_total","log_grav_neiBR",
-                                               "log_btwdegree","log_SelfR","log_CorridorIn","log_Inflow",  
-                                               "log_InflowMPA","log_InflowNei","log_Indegree","log_Indegree_MPA","log_Indegree_Neigh","log_Outdegree","log_Outflow")], MARGIN = 2,FUN = function(x){(x - mean(x,na.rm=T)) / (1*sd(x,na.rm=T))}))
+PARENTAL.std<-data.frame(apply(X = PARENTAL[,c("Richness","temp","prod.annual",
+                                               "Netflow","log_grav_total",
+                                               "log_btwdegree","log_SelfR","log_Inflow",  
+                                               "log_InflowNei","log_Indegree","log_Indegree_Neigh","log_Outdegree","log_Outflow")], MARGIN = 2,FUN = function(x){(x - mean(x,na.rm=T)) / (1*sd(x,na.rm=T))}))
 
 # add management and region
 PARENTAL.std <- cbind(PARENTAL$region,PARENTAL.std)
@@ -161,10 +156,10 @@ summary(CRYPTIC)
 
 ## standrdize x variables
 rm(CRYPTIC.std)
-CRYPTIC.std<-data.frame(apply(X = CRYPTIC[,c("Richness","temp","Age_of_pro","prod.annual",
-                                             "Netflow","log_grav_total","log_grav_neiBR",
-                                             "log_btwdegree","log_SelfR","log_CorridorIn","log_Inflow",  
-                                             "log_InflowMPA","log_InflowNei","log_Indegree","log_Indegree_MPA","log_Indegree_Neigh","log_Outdegree","log_Outflow")], MARGIN = 2,FUN = function(x){(x - mean(x,na.rm=T)) / (1*sd(x,na.rm=T))}))
+CRYPTIC.std<-data.frame(apply(X = CRYPTIC[,c("Richness","temp","prod.annual",
+                                             "Netflow","log_grav_total",
+                                             "log_btwdegree","log_SelfR","log_Inflow",  
+                                             "log_InflowNei","log_Indegree","log_Indegree_Neigh","log_Outdegree","log_Outflow")], MARGIN = 2,FUN = function(x){(x - mean(x,na.rm=T)) / (1*sd(x,na.rm=T))}))
 
 # add management and region
 CRYPTIC.std <- cbind(CRYPTIC$region,CRYPTIC.std)
@@ -185,10 +180,10 @@ summary(RESID)
 
 ## standardize x variables
 rm(RESID.std)
-RESID.std<-data.frame(apply(X = RESID[,c("Richness","temp","Age_of_pro","prod.annual",
-                                         "Netflow","log_grav_total","log_grav_neiBR",
-                                         "log_btwdegree","log_SelfR","log_CorridorIn","log_Inflow",  
-                                         "log_InflowMPA","log_InflowNei","log_Indegree","log_Indegree_MPA","log_Indegree_Neigh","log_Outdegree","log_Outflow")], MARGIN = 2,FUN = function(x){(x - mean(x,na.rm=T)) / (1*sd(x,na.rm=T))}))
+RESID.std<-data.frame(apply(X = RESID[,c("Richness","temp","prod.annual",
+                                         "Netflow","log_grav_total",
+                                         "log_btwdegree","log_SelfR","log_Inflow",  
+                                         "log_InflowNei","log_Indegree","log_Indegree_Neigh","log_Outdegree","log_Outflow")], MARGIN = 2,FUN = function(x){(x - mean(x,na.rm=T)) / (1*sd(x,na.rm=T))}))
 
 # add management and region
 RESID.std <- cbind(RESID$region,RESID.std)
@@ -198,4 +193,3 @@ colnames(RESID.std)[c(1,2)] <- c("Class","region")
 # add biomass and richness
 RESID.std$log_biomassarea <- RESID$log_biomassarea
 #RESID.std$Richness <- RESID$Richness
-
